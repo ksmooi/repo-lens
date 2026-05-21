@@ -8,11 +8,11 @@
 repos/
 └── {category}/
     └── {owner}__{repo}/
-        ├── 00-overview.md          # 30 秒電梯簡報與競品比較
-        ├── 01-architecture.md      # 架構圖與設計決策 trade-off
-        ├── 02-code-walkthrough.md  # 一條典型流程的完整追蹤
-        ├── 03-key-patterns.md      # 值得偷學的設計(含替代方案)
-        └── 99-questions.md         # 未解問題與待辦清單
+        ├── README.md          # 30 秒電梯簡報與競品比較
+        ├── 1-architecture.md      # 架構圖與設計決策 trade-off
+        ├── 2-code-walkthrough.md  # 一條典型流程的完整追蹤
+        ├── 3-key-patterns.md      # 值得偷學的設計(含替代方案)
+        └── 9-questions.md         # 未解問題與待辦清單
 ```
 
 ---

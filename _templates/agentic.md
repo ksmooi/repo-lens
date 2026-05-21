@@ -11,7 +11,7 @@ Same usage as backend.md. This template focuses on:
 Write in Traditional Chinese (繁體中文).
 -->
 
-=== FILE: 00-overview.md ===
+=== FILE: README.md ===
 
 ---
 repo: <owner>/<repo>
@@ -74,11 +74,11 @@ status: active | maintenance | archived
 - ?
 
 
-=== FILE: 01-architecture.md ===
+=== FILE: 1-architecture.md ===
 
 ---
 repo: <owner>/<repo>
-file: 01-architecture
+file: 1-architecture
 ---
 
 # <repo-name> · 架構
@@ -208,11 +208,11 @@ flowchart TB
 - **覆蓋率重點**:
 
 
-=== FILE: 02-code-walkthrough.md ===
+=== FILE: 2-code-walkthrough.md ===
 
 ---
 repo: <owner>/<repo>
-file: 02-code-walkthrough
+file: 2-code-walkthrough
 ---
 
 # <repo-name> · 程式碼追蹤
@@ -317,11 +317,11 @@ dispatch 邏輯、參數驗證、實際呼叫、結果包裝。
 <!-- AGENT: 例如多 agent 協作、interrupt、resume、平行 tool call -->
 
 
-=== FILE: 03-key-patterns.md ===
+=== FILE: 3-key-patterns.md ===
 
 ---
 repo: <owner>/<repo>
-file: 03-key-patterns
+file: 3-key-patterns
 ---
 
 # <repo-name> · 值得偷學的設計
@@ -364,11 +364,11 @@ file: 03-key-patterns
 |---|---|---|
 
 
-=== FILE: 99-questions.md ===
+=== FILE: 9-questions.md ===
 
 ---
 repo: <owner>/<repo>
-file: 99-questions
+file: 9-questions
 ---
 
 # <repo-name> · 未解問題

@@ -3,11 +3,11 @@
 這個資料夾放各類型專案的筆記模板。每份模板包含**五個檔案**的骨架:
 
 ```
-00-overview.md          # 30 秒電梯簡報
-01-architecture.md      # 靜態結構與設計決策
-02-code-walkthrough.md  # 動態路徑追蹤
-03-key-patterns.md      # 值得偷學的技巧
-99-questions.md         # 還沒搞懂的東西
+README.md               # 30 秒電梯簡報
+1-architecture.md       # 靜態結構與設計決策
+2-code-walkthrough.md   # 動態路徑追蹤
+3-key-patterns.md       # 值得偷學的技巧
+9-questions.md          # 還沒搞懂的東西
 ```
 
 ## 為什麼模板要分類型

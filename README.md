@@ -93,11 +93,11 @@ repo-lens/
 │   ├── infra/
 │   └── eval/
 │       └── <owner>__<repo>/
-│           ├── 00-overview.md       # 30 秒電梯簡報
-│           ├── 01-architecture.md   # 靜態結構與設計決策
-│           ├── 02-code-walkthrough.md  # 一條完整路徑的動態追蹤
-│           ├── 03-key-patterns.md   # 值得偷學的技巧
-│           └── 99-questions.md      # 還沒搞懂的東西
+│           ├── README.md       # 30 秒電梯簡報
+│           ├── 1-architecture.md   # 靜態結構與設計決策
+│           ├── 2-code-walkthrough.md  # 一條完整路徑的動態追蹤
+│           ├── 3-key-patterns.md   # 值得偷學的技巧
+│           └── 9-questions.md      # 還沒搞懂的東西
 └── AGENTS.md                # 給 AI agent 的工作區規則
 ```
 
@@ -111,11 +111,11 @@ repo-lens/
 
 每個被研究的 repo 都產出**固定五份** markdown,目的明確不重疊:
 
-- **`00-overview.md`** — 這個專案解決什麼問題?為什麼值得研究?技術棧一句話。
-- **`01-architecture.md`** — Mermaid 架構圖、分層說明、關鍵設計決策。
-- **`02-code-walkthrough.md`** — 挑一條典型流程(一個請求、一次訓練、一輪 agent loop),從入口追蹤到出口,附上 `path:line` 引用。
-- **`03-key-patterns.md`** — 3 到 7 個可以偷學或移植的技巧。**這是長期最有價值的檔案**。
-- **`99-questions.md`** — 還沒搞懂的設計決策、想問維護者的問題、下次再看時的待辦清單。
+- **`README.md`** — 這個專案解決什麼問題?為什麼值得研究?技術棧一句話。
+- **`1-architecture.md`** — Mermaid 架構圖、分層說明、關鍵設計決策。
+- **`2-code-walkthrough.md`** — 挑一條典型流程(一個請求、一次訓練、一輪 agent loop),從入口追蹤到出口,附上 `path:line` 引用。
+- **`3-key-patterns.md`** — 3 到 7 個可以偷學或移植的技巧。**這是長期最有價值的檔案**。
+- **`9-questions.md`** — 還沒搞懂的設計決策、想問維護者的問題、下次再看時的待辦清單。
 
 ## 跨專案沉澱:`_patterns/`
 
