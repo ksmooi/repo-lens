@@ -1,9 +1,14 @@
-# repo-lens 🔍
+# Repo Lens 💻🔍
 
-> 一個讀程式碼的透鏡。聚焦 backend、agentic、ML/DL 三類值得研究的 GitHub 專案,留下結構化的學習筆記。
+用五份筆記的篇幅，把一個 GitHub 專案讀透。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Notes](https://img.shields.io/badge/notes-markdown-blue.svg)](./repos)
+這是我的個人程式碼閱讀筆記庫，涵蓋 agentic AI、RAG、LLM 訓練與推論、模型架構、多模態、ML 平台、深度學習框架、資料管線、後端系統、開發工具等 15 個技術領域。每份筆記圍繞一個**目標 repo** 展開，從架構全貌到具體程式碼路徑，試圖把該專案的**設計決策與核心取捨**講清楚。
+
+筆記以繁體中文撰寫，主要是寫給未來的自己看，但歡迎任何路過的人閱讀、討論、糾錯。
+
+取名 Repo Lens，是因為讀一個陌生的 codebase 很像用放大鏡看東西——不是看得更廣，而是看得更深、更清楚。每份筆記試圖把一個專案的關鍵設計放大到足夠清楚，讓人真正「看見」它在做什麼、為什麼這樣做，而不只是知道它存在。
+
+姊妹專案 [`paper_lens`](https://github.com/ksmooi/paper_lens) 用同樣的透鏡對準 AI 論文。
 
 ---
 
@@ -23,15 +28,47 @@
 
 ## 聚焦範圍
 
-我刻意只研究三類專案:
+依技術領域分為 15 個類別,每個類別對應一份專屬的分析模板:
 
-| 類型 | 我關注什麼 | 典型對象 |
+**Agent 與知識系統**
+
+| 類別 | 我關注什麼 | 典型對象 |
 |---|---|---|
-| **Backend** | 分層架構、資料流、API 設計、中介層、可觀測性 | FastAPI、Django、NestJS 系專案 |
-| **Agentic** | Agent 控制流、prompt 管理、tool registry、memory 設計 | LangGraph、CrewAI、AutoGen |
-| **ML/DL** | 模型架構、訓練迴圈、實驗管理、可重現性 | Transformers、nanoGPT 等 |
+| `agentic` | Agent 控制流、prompt 系統、tool registry、memory 架構 | LangGraph、CrewAI、AutoGen |
+| `rag` | retrieval 策略、chunking、indexing、reranking、hybrid search | LightRAG、LlamaIndex、Haystack |
 
-不在這三類的專案我也會看,但不會留下完整筆記。
+**模型訓練與推論**
+
+| 類別 | 我關注什麼 | 典型對象 |
+|---|---|---|
+| `llm-training` | 訓練迴圈、LoRA / RLHF / DPO、分散式策略 | LLaMA-Factory、Axolotl、TRL |
+| `llm-serving` | continuous batching、KV cache、quantization | vLLM、SGLang、TGI |
+| `model-arch` | 論文對應、關鍵元件、hyperparameter | nanoGPT、Mamba、RWKV |
+| `multimodal` | 多模態融合、encoder 設計、inference pipeline | LLaVA、Whisper、Stable Diffusion |
+
+**資料與平台**
+
+| 類別 | 我關注什麼 | 典型對象 |
+|---|---|---|
+| `ml-platform` | 實驗追蹤、pipeline 編排、feature store | MLflow、ZenML、Feast |
+| `dl-framework` | autograd、compiler、CUDA kernel | PyTorch、JAX、Triton |
+| `data-pipeline` | ETL、streaming、schema evolution、data quality | DLT、Airbyte、Ray Data |
+
+**後端與框架**
+
+| 類別 | 我關注什麼 | 典型對象 |
+|---|---|---|
+| `backend` | 分層架構、API 設計、資料層、中介層 | FastAPI 應用、Django 應用 |
+| `backend-framework` | 框架 API 哲學、middleware、DI、相容性策略 | FastAPI、SQLAlchemy、Gin |
+
+**工具與基礎設施**
+
+| 類別 | 我關注什麼 | 典型對象 |
+|---|---|---|
+| `devtool` | CLI 設計、build graph、plugin 機制 | Ruff、uv、Turborepo |
+| `library` | 公開 API 設計、擴充機制、版本策略 | Pydantic、Tenacity、Tokio |
+| `infra` | 分散式協調、storage engine、可觀測性 | Ray、ClickHouse、Qdrant |
+| `eval` | 任務定義、metric 實作、model adapter | LMMS-Eval、DeepEval、Inspect AI |
 
 ## 目錄結構
 
@@ -40,10 +77,21 @@ repo-lens/
 ├── _templates/              # 各類型專案的筆記模板
 ├── _patterns/               # 跨專案累積的設計模式庫 ← 長期最有價值
 ├── repos/                   # 每個學習對象一個資料夾,依類別分組
-│   ├── backend/
 │   ├── agentic/
-│   ├── ml-dl/
-│   └── library/
+│   ├── rag/
+│   ├── llm-training/
+│   ├── llm-serving/
+│   ├── model-arch/
+│   ├── multimodal/
+│   ├── ml-platform/
+│   ├── dl-framework/
+│   ├── data-pipeline/
+│   ├── backend/
+│   ├── backend-framework/
+│   ├── devtool/
+│   ├── library/
+│   ├── infra/
+│   └── eval/
 │       └── <owner>__<repo>/
 │           ├── 00-overview.md       # 30 秒電梯簡報
 │           ├── 01-architecture.md   # 靜態結構與設計決策
@@ -54,9 +102,10 @@ repo-lens/
 ```
 
 > 命名規則:
-> - 類別目錄用 `backend` / `agentic` / `ml-dl` / `library`,跟模板檔名對齊
-> - repo 資料夾用 `<owner>__<repo>`(雙底線),類別不寫進檔名
+> - 15 個類別目錄見上方「聚焦範圍」表格,跟模板檔名對齊
+> - repo 資料夾用 `<owner>__<repo>`(雙底線),全小寫,類別不寫進檔名
 > - 底線開頭的資料夾(`_templates`、`_patterns`)是跨切面內容
+> - 若 15 個類別都不合適,可自行新增;新增規則見 `AGENTS.md`
 
 ## 每份筆記長什麼樣
 
@@ -93,10 +142,10 @@ repo-lens/
 
 ## 怎麼瀏覽這個 repo
 
-- 想找特定類型的學習成果 → 進 `repos/<類別>/`
+- 想找特定類別的學習成果 → 進 `repos/<類別>/`(15 個類別見上方表格)
 - 想找特定 repo → `repos/<類別>/<owner>__<repo>/`
 - 想看跨專案的設計模式 → 翻 [`_patterns/`](./_patterns/)
-- 想知道我關注哪些類型的專案 → 看上面「聚焦範圍」表格
+- 想了解 15 個類別的詳細定義 → 看 [`repos/README.md`](./repos/README.md)
 
 > 想找特定主題或關鍵字,直接用 GitHub 的 repo 搜尋(按 `/` 或 `t`)比任何手工維護的索引都快。
 
