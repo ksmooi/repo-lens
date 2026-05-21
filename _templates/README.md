@@ -21,6 +21,24 @@
 | ML/DL | [`ml-dl.md`](./ml-dl.md) | 模型架構、訓練迴圈、實驗管理 |
 | Library / SDK | [`library.md`](./library.md) | API 設計、擴充點、發布策略 |
 
+## 類別目錄對照
+
+模板檔名跟 `repos/` 下的類別目錄一一對應:
+
+| 模板檔 | 對應的 repos 子目錄 |
+|---|---|
+| `backend.md` | `repos/backend/` |
+| `agentic.md` | `repos/agentic/` |
+| `ml-dl.md` | `repos/ml-dl/` |
+| `library.md` | `repos/library/` |
+
+這個對應關係很重要 — 它讓 agent 在 Step 5 寫入時,只需要看 `PROJECT_TYPE` 一個變數就能同時決定「套用哪份模板」跟「寫到哪個目錄」。
+
+新增類別時務必兩邊同步:
+1. 在 `_templates/` 新增 `<新類別>.md`
+2. 預期 `repos/<新類別>/` 會在第一次有對應 repo 時自動建立
+3. 更新 `AGENTS.md` 與 `PROMPT.md` 的類別清單
+
 ## 模板裡的標記約定
 
 | 標記 | 意思 |
