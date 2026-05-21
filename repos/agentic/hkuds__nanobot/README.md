@@ -1,6 +1,6 @@
 ---
 repo: hkuds/nanobot
-file: 00-overview
+file: README
 studied_at: 2026-05-21
 commit_sha: ccbc0bb
 type: agentic

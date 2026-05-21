@@ -1,6 +1,6 @@
 ---
 repo: hkuds/nanobot
-file: 02-code-walkthrough
+file: 2-code-walkthrough
 ---
 
 # Nanobot · 程式碼追蹤

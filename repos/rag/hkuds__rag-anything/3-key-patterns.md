@@ -1,6 +1,6 @@
 ---
 repo: HKUDS/RAG-Anything
-file: 03-key-patterns
+file: 3-key-patterns
 studied_at: 2026-05-21
 commit_sha: e8c0081
 ---

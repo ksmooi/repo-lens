@@ -1,6 +1,6 @@
 ---
 repo: HKUDS/RAG-Anything
-file: 01-architecture
+file: 1-architecture
 studied_at: 2026-05-21
 commit_sha: e8c0081
 ---

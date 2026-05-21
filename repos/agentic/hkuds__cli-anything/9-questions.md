@@ -1,6 +1,6 @@
 ---
 repo: HKUDS/CLI-Anything
-file: 99-questions
+file: 9-questions
 studied_at: 2026-05-21
 commit_sha: 436a4f5
 ---

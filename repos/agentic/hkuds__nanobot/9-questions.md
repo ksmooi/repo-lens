@@ -1,6 +1,6 @@
 ---
 repo: hkuds/nanobot
-file: 99-questions
+file: 9-questions
 ---
 
 # Nanobot · 未解問題

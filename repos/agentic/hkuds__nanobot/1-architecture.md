@@ -1,6 +1,6 @@
 ---
 repo: hkuds/nanobot
-file: 01-architecture
+file: 1-architecture
 ---
 
 # Nanobot · 架構

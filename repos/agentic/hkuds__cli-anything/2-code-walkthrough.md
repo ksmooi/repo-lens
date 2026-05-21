@@ -1,6 +1,6 @@
 ---
 repo: HKUDS/CLI-Anything
-file: 02-code-walkthrough
+file: 2-code-walkthrough
 studied_at: 2026-05-21
 commit_sha: 436a4f5
 ---

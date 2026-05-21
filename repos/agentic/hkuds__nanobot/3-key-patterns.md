@@ -1,6 +1,6 @@
 ---
 repo: hkuds/nanobot
-file: 03-key-patterns
+file: 3-key-patterns
 ---
 
 # Nanobot · 值得偷學的設計
