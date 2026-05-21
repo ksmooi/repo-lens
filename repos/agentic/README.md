@@ -53,4 +53,4 @@ LLM agent 框架、multi-agent 系統、orchestration 引擎、agent runtime。
 
 | 專案 | 學習日期 | 深度 | 亮點 |
 |------|----------|------|------|
-| — | — | — | 尚無紀錄 |
+| [hkuds/nanobot](./hkuds__nanobot/) | 2026-05-21 | standard | 極輕量 agent 框架：TurnState 狀態機、MessageBus 解耦、Dream 兩階段記憶、14+ 自動發現工具 |
