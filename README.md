@@ -40,17 +40,24 @@
 repo-lens/
 ├── _templates/              # 各類型專案的筆記模板
 ├── _patterns/               # 跨專案累積的設計模式庫 ← 長期最有價值
-├── repos/                   # 每個學習對象一個資料夾
-│   └── <owner>__<repo>/
-│       ├── 00-overview.md       # 30 秒電梯簡報
-│       ├── 01-architecture.md   # 靜態結構與設計決策
-│       ├── 02-code-walkthrough.md  # 一條完整路徑的動態追蹤
-│       ├── 03-key-patterns.md   # 值得偷學的技巧
-│       └── 99-questions.md      # 還沒搞懂的東西
+├── repos/                   # 每個學習對象一個資料夾,依類別分組
+│   ├── backend/
+│   ├── agentic/
+│   ├── ml-dl/
+│   └── library/
+│       └── <owner>__<repo>/
+│           ├── 00-overview.md       # 30 秒電梯簡報
+│           ├── 01-architecture.md   # 靜態結構與設計決策
+│           ├── 02-code-walkthrough.md  # 一條完整路徑的動態追蹤
+│           ├── 03-key-patterns.md   # 值得偷學的技巧
+│           └── 99-questions.md      # 還沒搞懂的東西
 └── AGENTS.md                # 給 AI agent 的工作區規則
 ```
 
-> 命名規則:repo 資料夾用 `owner__repo`(雙底線),底線開頭的資料夾(`_templates`、`_patterns`)是跨切面內容。
+> 命名規則:
+> - 類別目錄用 `backend` / `agentic` / `ml-dl` / `library`,跟模板檔名對齊
+> - repo 資料夾用 `<owner>__<repo>`(雙底線),類別不寫進檔名
+> - 底線開頭的資料夾(`_templates`、`_patterns`)是跨切面內容
 
 ## 每份筆記長什麼樣
 
@@ -87,7 +94,8 @@ repo-lens/
 
 ## 怎麼瀏覽這個 repo
 
-- 想找特定 repo 的學習成果 → 直接進 `repos/<owner>__<repo>/`
+- 想找特定類型的學習成果 → 進 `repos/<類別>/`
+- 想找特定 repo → `repos/<類別>/<owner>__<repo>/`
 - 想看跨專案的設計模式 → 翻 [`_patterns/`](./_patterns/)
 - 想知道我關注哪些類型的專案 → 看上面「聚焦範圍」表格
 
