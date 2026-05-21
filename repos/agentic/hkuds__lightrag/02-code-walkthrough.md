@@ -25,13 +25,13 @@ sequenceDiagram
     User->>LightRAG: query("What are the key contributions?")
     LightRAG->>LLM: keywords_extraction(query)
     LLM-->>LightRAG: {high_level_keywords, low_level_keywords}
-    LightRAG->>EntitiesVDB: query(hl_keywords, top_k)
-    LightRAG->>RelationshipsVDB: query(hl_keywords, top_k)
+    LightRAG->>EntitiesVDB: query(low_level_keywords, top_k)
+    LightRAG->>RelationshipsVDB: query(high_level_keywords, top_k)
     LightRAG->>GraphStorage: get_entities(entities)
     GraphStorage-->>LightRAG: neighboring entities/relations
     LightRAG->>ChunksVDB: query(keywords, top_k)
     LightRAG->>GraphStorage: get_related_chunks(entities)
-    LightRAG-->>(context_data + reference_list + chunks)
+    LightRAG-->>LightRAG: build context_data, reference_list, chunks
     LightRAG->>LLM: rag_response_prompt(context + query)
     LLM-->>LightRAG: generated_answer
     LightRAG-->>User: final_response
