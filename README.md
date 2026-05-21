@@ -4,7 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Notes](https://img.shields.io/badge/notes-markdown-blue.svg)](./repos)
-[![Sister Repo](https://img.shields.io/badge/sister-paper--lens-purple.svg)](https://github.com/ksmooi/paper-lens)
 
 ---
 
@@ -12,7 +11,7 @@
 
 `repo-lens` 是我深入研究 GitHub 開源專案的學習筆記庫。每個被研究過的 repo 都會留下五份結構化的 markdown,覆蓋從宏觀架構到具體程式碼路徑的觀察。
 
-這個 repo 是 [`paper-lens`](https://github.com/ksmooi/paper-lens) 的姊妹專案 — 同樣的「透鏡」,一個對準論文,一個對準程式碼倉庫。
+這個 repo 是 [`paper_lens`](https://github.com/ksmooi/paper_lens) 的姊妹專案 — 同樣的「透鏡」,一個對準論文,一個對準程式碼倉庫。
 
 ## 為什麼做這件事
 
@@ -114,7 +113,7 @@ repo-lens/
 
 ## 相關連結
 
-- 姊妹專案:[`ksmooi/paper-lens`](https://github.com/ksmooi/paper-lens) — 同樣的方法論,對準論文
+- 姊妹專案:[`ksmooi/paper_lens`](https://github.com/ksmooi/paper_lens) — 同樣的方法論,對準論文
 - 學習工作流的設計理由與細節,見 [`AGENTS.md`](./AGENTS.md)
 
 ## License
