@@ -1,48 +1,68 @@
 ## 學習對象
-- Repo: [nousresearch/hermes-agent](https://github.com/nousresearch/hermes-agent)
-- Commit: `48be2e0` (2026-05-21)
-- 語言 / 主要技術: Python, OpenAI SDK, SQLite
-- 專案類型 / 類別: agentic (套用模板: agentic.md)
+
+- Repo: [astral-sh/ruff](https://github.com/astral-sh/ruff)
+- Commit: `8c04080` (2026-05-21)
+- 語言 / 主要技術: Rust
+- 專案類型 / 類別: `devtool`（套用模板: `library.md`）
 - 學習深度: standard
-- 筆記路徑: `repos/agentic/nousresearch__hermes-agent/`
+- 筆記路徑: `repos/devtool/astral-sh__ruff/`
 
 ## 關鍵入口檔案
+
 | 檔案 | 選擇理由 | 深度精讀指標 |
 |---|---|---|
-| `run_agent.py` | AIAgent 類別，agent 的 public API 與初始化 (~4153 lines) | 60+ parameters, provider auto-detection, iteration budget |
-| `agent/conversation_loop.py` | Agent 主迴圈的完整實作 (~3900 lines) | 同步 while loop, 7-stage empty recovery, streaming always-on |
-| `tools/registry.py` | 工具註冊與 AST-based discovery 核心 | Self-registering, `__slots__`, generation counter |
-| `model_tools.py` | Tool orchestration layer (~923 lines) | get_tool_definitions, handle_function_call, async bridging |
-| `hermes_state.py` | SQLite 狀態儲存 (~3273 lines) | WAL mode, FTS5, schema versioning, session splitting |
+| `crates/ruff/src/lib.rs` | CLI 調度中樞，`run()` 函數分派所有指令 | 674 行，含 `check()`、`format()`、`server()` 跳板函數 |
+| `crates/ruff_linter/src/linter.rs` | `check_path()` — 五 pass checker 的入口與調度 | 1256 行，定義 token → AST → import → physical lines 管線 |
+| `crates/ruff_linter/src/checkers/ast/mod.rs` | AST visitor 核心，四階段（binding/traversal/cleanup/analysis） | 3758 行，SemanticModel 的狀態管理核心 |
+| `crates/ruff/src/commands/check.rs` | `ruff check` 指令的完整 orchestrator（檔案發現→平行→彙整） | 302 行，rayon 平行化 + cache 載入邏輯 |
+| `crates/ruff_linter/src/registry.rs` | 規則命名空間系統（Linter enum + RuleNamespace） | 522 行，proc macro 驅動的前綴規則註冊 |
 
 ## 三個最重要的發現
-1. **AST-based Tool Discovery** — 不用中央註冊表，用 AST 掃描 `tools/*.py` 找出有 `registry.register()` 的 module。每次在 `tools/` 下新增檔案 = 註冊一個新工具，零 boilerplate。
-2. **三層 System Prompt 快取** — stable/context/volatile 分層，stable 層在 session 內完全不變，維持 Anthropic prefix cache 高命中率。Date-only timestamp (YYYY-MM-DD) 確保同一天的 prompt byte 完全一致。
-3. **Implicit tool execution fallback** — 從 credential pool 輪換到 provider fallback chain，每個層級都有精細的 error classification 和 recovery 策略（不是單純 retry 或 abort）。
+
+1. **五 pass checker 架構** — Ruff 的 linter 不是單一巨大 AST visitor，而是分為 token → filesystem → logical line → AST → import → physical line 六個獨立 pass，每個 pass 只處理其所需資訊的規則。這讓每個 pass 的程式碼保持專注，且未啟用的 pass 在 runtime 被零成本跳過。
+2. **從 linter 走向 type checker** — Ruff 已經開始內建完整的 Python 型別推論引擎（`ty_python_semantic` crate 約 13 萬行），是 Ruff 中最大的單一 crate。這個方向顯示 Ruff 的最終目標是取代 mypy + Pyright，而不只是 Flake8 + Black。
+3. **RuleNamespace + proc macro 的規則註冊系統** — 透過自訂 derive macro 讓 80+ 個規則模組無需手動註冊。新增一條規則只需在對應模組加一個 enum variant，prefix 和 code 的對應由 `ruff_macros` 自動生成。
 
 ## 候選 Pattern
-- **Registry generation counter**（自動 cache 失效）：`tools/registry.py` 的 `_generation` counter 讓所有 cache 消費者在 tool 註冊變更時自動失效。已在 `paper_lens` 看到類似版本，但需要 3+ repo 才能收錄到 `_patterns/`。
-- **Imperative while loop vs State machine**：Hermes Agent 的同步 while loop 與 `hkuds/nanobot` 的顯式狀態機形成對照，可用於補充 `_patterns/agent-state-machine.md`。
+
+- **attribute-driven plugin registration**: `#[prefix = "ANN"]` 屬性 + `RuleNamespace` derive macro 的組合，讓規則註冊完全自動化。已在 Ruff 和 biome 中觀察到類似的 proc macro 使用模式，值得追蹤是否成為 Rust CLI 工具的 common pattern。
 
 ## 品質檢查摘要
-- 各檔大小：README=3.8KB / 1-arch=17.5KB / 2-walk=11.7KB / 3-pat=18.6KB / 9-q=6.7KB
-- Mermaid 圖數量：1-arch=3 張、2-walk=1 張、3-pat=0 張
-- path:line 引用總數：38（commit-pinned 至 48be2e0）
-- 比較表格次數：2（README 競品對照 + 3-key-patterns 框架比較）
+
+- 各檔字數（bytes）: README=2,963 / 1-arch=15,127 / 2-walk=10,703 / 3-pat=11,345 / 9-q=5,380
+- Mermaid 圖數量: 1-arch=2 張、2-walk=1 張、3-pat=1 張 = 總計 4 張
+- path:line 引用總數: 36 個
+- 量化資訊出現次數（版本、規模、效能等具體數字）: 15+ 處（版本號、LOC、stars、速度倍數等）
+- 比較表格出現次數: README 中 1 個（Ruff vs Flake8 vs mypy vs Black）
 
 ## 執行決策日誌
-- REPO_SLUG 決定: `nousresearch__hermes-agent`（無衝突）
-- 類別確認: CATEGORY=agentic / TEMPLATE=agentic.md（AI agent 框架，非 RAG）
-- 類別決策說明: Hermes Agent 是純 agent 產品（非 RAG pipeline），歸 agentic 類別
+
+- REPO_SLUG 決定與衝突檢查結果: `astral-sh__ruff` — 無衝突，repos/devtool/ 下無既有筆記
+- 類別確認: CATEGORY=`devtool` / TEMPLATE=`library.md`
+- 類別決策說明: Ruff 是 Python linter + formatter，屬於 CLI 開發工具，歸類 devtool。對應 `library.md` 模板（與 `devtool` 類別匹配）
 - 新增類別時的附帶動作: 無，使用既有類別
-- 關鍵入口檔案選擇與排除理由: 排除 gateway/run.py（18K+ lines）因其主要為 platform adapter 而非常見 agent loop；排除 cli.py（676KB）因其為 CLI UI 層而非 agent 核心
-- 競品識別: Claude Code (closed source), Codex CLI (closed source), LangGraph (open source, graph-based)
-- subagent 使用情況: 使用 3 個平行 subagent 分析 (a) agent loop/control flow (b) tool/skills system (c) memory/state/gateway
-- 工具替換: 無
-- [UNVERIFIED] 標註: 9-questions.md 中有 3 處 [UNVERIFIED] 標記
+- 關鍵入口檔案選擇與排除理由: 選擇了 lib.rs（CLI 調度）、linter.rs（核心 linter）、checkers/ast/mod.rs（AST visitor）、commands/check.rs（指令 orchestrator）、registry.rs（規則註冊）。排除了 formatter crate（與 linter 共享 parser 但獨立，架構上相對直觀）、ty* crates（規模太大，standard depth 無法完整覆蓋）、ruff_server（LSP protocol 實作較獨立）
+- 競品識別: Flake8 + plugins（傳統 lint）、mypy（type checking）、Black（formatting）
+- subagent 使用情況: 未啟用（LEARNING_DEPTH=standard，直接分析）
+- 工具替換: pygount timeout（超過 60s），改用 `find + wc -l` 替代
+- 模板章節未明確規則的處理: 將 `library.md` 的 `## API 風格一句話` 調整為 CLI-first 描述（devtool 特性）
+- 任務 prompt 覆寫 AGENTS.md 的項目: 無衝突
+- [UNVERIFIED] 標註的部分清單:
+  1. 1-architecture.md — 自建 parser 的切換時間點
+  2. 9-questions.md — token/AST pass 平行化可能性
+  3. 9-questions.md — ty* crates 獨立性
+  4. 9-questions.md — formatter comment-preserving 策略
+  5. 9-questions.md — RuleNamespace proc macro 實作細節
 
 ## Git 身份驗證
+
 - Commit author: ksmooi <kaishianmooi@gmail.com>
+- Git config 確認指令輸出:
+  ```
+  ksmooi
+  kaishianmooi@gmail.com
+  ```
 
 ## 驗證版本說明
-此 PR 為 Hermes Agent repo 學習功能，學習對象: nousresearch/hermes-agent。
+
+此 PR 為 Hermes Agent repo 學習功能，學習對象: astral-sh/ruff。
