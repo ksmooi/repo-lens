@@ -49,6 +49,10 @@
 
 ## 已收錄的專案
 
+| 專案 | 收錄日期 | 主要發現 |
+|------|----------|----------|
+| [tinygrad/tinygrad](tinygrad__tinygrad/) | 2026-05-23 | 單一 UOp IR 貫穿全管線、PatternMatcher 作為統一變換引擎、內建 BEAM search autotuning、HCQ 硬體命令佇列抽象 |
+
 <!-- 由 Hermes Agent 在每次 PR 合併後自動更新 -->
 
 | 專案 | 學習日期 | 深度 | 亮點 |
