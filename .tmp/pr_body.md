@@ -1,67 +1,59 @@
 ## 學習對象
-
-- Repo: [ClickHouse/ClickHouse](https://github.com/ClickHouse/ClickHouse)
-- Commit: `72b4ed7` (2026-05-23)
-- 語言 / 主要技術: C++ / Poco / NuRaft
-- 專案類型 / 類別: infra (套用模板: library.md, 依 infra 指引調整)
+- Repo: [langgenius/dify](https://github.com/langgenius/dify)
+- Commit: `72ee50c` (2026-05-23)
+- 語言 / 主要技術: TypeScript + Python (Flask + Next.js)
+- 專案類型 / 類別: agentic (套用模板: _templates/agentic.md)
 - 學習深度: standard
-- 筆記路徑: `repos/infra/clickhouse__clickhouse/`
+- 筆記路徑: `repos/agentic/langgenius__dify/`
 
 ## 關鍵入口檔案
 
-| 檔案 | 選擇理由 |
-|---|---|
-| `programs/main.cpp:370` | 單一二進位 dispatch 入口，所有子命令（server/client/local/keeper）由此分發 |
-| `programs/server/Server.cpp:1348-1360` | Server 啟動流程核心：註冊所有元件 → Context → loadMetadata → 啟動 services |
-| `src/Interpreters/executeQuery.cpp:2268` | 查詢執行總入口：parse → analyze → plan → execute 五階段管線 |
-| `src/Storages/MergeTree/MergeTreeData.h` | MergeTree 儲存引擎核心：immutable part 管理、transaction、multi-index container |
-| `src/Planner/Planner.h:27` | 查詢 Planner：將 QueryTree 轉換為 QueryPlan (step DAG) |
+| 檔案 | 選擇理由 | 深度精讀指標 |
+|---|---|---|
+| `api/core/workflow/workflow_entry.py` | 核心入口，graphon DAG 引擎整合層 | 608 行，完整閱讀 |
+| `api/core/agent/base_agent_runner.py` | Agent 執行核心，FC/CoT 雙態 agent | 549 行，完整閱讀 |
+| `api/core/tools/tool_manager.py` | Tool 系統核心，6 種 provider 類型註冊 | 完整閱讀 get_tool_runtime() |
+| `api/core/tools/__base/tool.py` | Tool 四層抽象設計 | 完整閱讀 fork_runtime 模式 |
+| `api/core/mcp/mcp_client.py` | MCP 協定整合（SSE + StreamableHTTP + OAuth） | 完整閱讀 |
 
 ## 三個最重要的發現
 
-1. **Immutable Data Part + Background Merge** — ClickHouse 最根本的架構決定。寫入的資料以不可變的 data part 為單位，讀取完全無鎖。後台 merge 程序持續將小 part 合併為大 part，以寫入放大換讀取效率。這個模式被 Delta Lake/Iceberg 等湖格式借鑑。
-2. **Processor Pipeline + Two-Phase Scheduling** — 查詢處理建模為 `IProcessor` 的有向圖，每個 processor 有 `prepare()` / `work()` 兩階段生命週期。PipelineExecutor 非同步排程，支援多執行緒平行執行、背壓處理、動態管線修改。
-3. **Shared-nothing + ZooKeeper (→ Keeper)** — ClickHouse 選擇不做強一致、不做 distributed transaction，使用 ZK 做輕量協調。後來開發 ClickHouse Keeper（NuRaft-based）替代 ZK，讓叢集只需一種二進位檔。
+1. **Workflow Layers (洋蔥模型)**: Dify 透過 `GraphEngineLayer` 將配額控制、執行限制、OTel 追蹤、DB 持久化以 middleware 方式堆疊在 graphon DAG 引擎上——這是比單純的 decorator 或 event hooks 更系統化的 cross-cutting concern 處理方式。
+2. **Plugin Daemon 隔離架構**: 不直接 import plugin 程式碼，而是透過獨立 HTTP 服務執行，搭配 Backwards Invocation 模式讓 plugin 回調 API 能力。這是 production 等級的安全隔離選擇。
+3. **Fork Runtime 執行期隔離**: 每次 tool 調用前 clone 工具實例並注入新 runtime，確保平行調用無 race conditions——簡單但有效的設計模式。
 
 ## 候選 Pattern
 
-| 候選 Pattern | 目前觀察 repo 數 | 說明 |
-|---|---|---|
-| Immutable Data Part + Background Compaction | 1（ClickHouse） | Data part 寫入後不可變，後台持續合併。Delta Lake / Iceberg 也有類似機制 |
-| Layer-Piercing Singleton Registration (register* 模式) | 1（ClickHouse） | 模組以函式註冊到中央 factory，而非使用 plugin 動態載入或 reflection |
+- **Plugin Backward Invocation**: Plugin 需要反過來呼叫宿主系統的模型/tool/app 能力，形成雙向通訊模式。已在 microsoft/autogen 的 executor 模式觀察到類似設計。
+- **Workflow Layer Stack**: 用 middleware layers 處理長期執行工作流的 cross-cutting concerns。值得追蹤是否在其他 workflow-based agent framework 重現。
 
 ## 品質檢查摘要
-
-- 各檔字數: README=3921 / 1-arch=14499 / 2-walk=10654 / 3-pat=13046 / 9-q=4504 bytes
-- Mermaid 圖數量: 1-arch=4 張、2-walk=1 張、3-pat=0 張
-- path:line 引用總數: 8 處
-- 量化資訊出現次數（版本、規模、效能等具體數字）: 20+ 次
-- 比較表格出現次數: 1 次（README, vs DuckDB/Druid/TimescaleDB）
+- 各檔字數: README=3,303 / 1-arch=11,512 / 2-walk=11,808 / 3-pat=11,005 / 9-q=4,506
+- Mermaid 圖數量: 1-arch=3 張、2-walk=1 張、3-pat=0 張
+- path:line 引用總數: 28
+- 量化資訊出現次數: 20+（版本號、stars、檔案數、layers 數量、VDB 後端數等）
+- 比較表格出現次數: 3（README 競品對照、3-key 跨框架對照、App 類型對照）
 
 ## 執行決策日誌
-
-- REPO_SLUG 決定與衝突檢查結果: `clickhouse__clickhouse`，無衝突
-- 類別確認: CATEGORY=infra / TEMPLATE=library.md（依 infra 指引調整）
-- 類別決策說明: ClickHouse 是分散式 OLAP 資料庫引擎，歸類於 infra
-- 關鍵入口檔案選擇與排除理由: 聚焦查詢執行管線（executeQuery → Planner → Processor Pipeline）與儲存引擎（MergeTree），排除測試（40k 檔案）、文件、第三方函式庫
-- 競品識別: DuckDB（嵌入式 OLAP）、Druid（即時 OLAP）、TimescaleDB（時序型 PG extension）
-- subagent 使用情況: 使用 3 個 subagent 並行分析（查詢管線 / MergeTree / 分散式架構）
-- 工具替換：使用 `sparse-checkout` 代替完整 clone，因 ClickHouse 有 40,045 個檔案
-- 模板章節未明確規則的處理: library.md 模板原為 library/SDK 設計，"infra" 類別依 AGENTS.md 指引做以下調整：新增分散式架構（Shared-nothing）、資源隔離（MemoryTracker）、協調層（ZK/Keeper）、儲存引擎架構（MergeTree）
-- 任務 prompt 覆寫 AGENTS.md 的項目: 學習對象 clone 位置從 `.tmp/studies/` 改為 `.tmp/runs/20260523-130419-clickhouse__clickhouse/study/`
+- REPO_SLUG 決定與衝突檢查結果: `langgenius__dify`，無衝突
+- 類別確認: CATEGORY=agentic / TEMPLATE=_templates/agentic.md
+- 類別決策說明: Dify 的核心是 agentic workflow development platform，agent 編排是其核心抽象，RAG 是功能性而非核心定位
+- 新增類別時的附帶動作: 無，使用既有 `agentic` 類別
+- 關鍵入口檔案選擇與排除理由: 選擇 workflow_entry.py（graphon 整合層）、agent runner（FC/CoT 雙態）、tool system（4 層抽象）、MCP client（MCP 整合）；排除 RAG pipeline（非 agentic 核心）、frontend web（TypeScript 非分析主力）
+- 競品識別: LangFlow / Flowise / Coze（詳見 README 比較表格）
+- subagent 使用情況: 使用 4 個 subagent 分別分析 agent 系統、tool/MCP 系統、workflow/app 系統、plugin/RAG 系統
+- 工具替換: pygount 超時，改用 find + sed + wc 做語言分布統計
+- 模板章節未明確規則的處理: 無
+- 任務 prompt 覆寫 AGENTS.md 的項目: STUDY_WORKSPACE_PATH 使用 .tmp/runs/ 而非 .tmp/studies/（任務 prompt 指定路徑優先）
 - [UNVERIFIED] 標註的部分清單:
-  - MemoryTracker atomic overhead 在 NUMA 機器的影響
-  - QueryPlan 到 Pipeline 的轉換成本
-  - Patch parts 的實作細節
-  - LLVM JIT 編譯範圍
-- 規模警告: ClickHouse ~40k 檔案，因使用者未在時限內回應，自行決定繼續 standard 學習
+  - graphon 套件的社群規模（無法查到明確的 stars/contributor）
+  - Agent Node v2 的 Agent Backend 是否為 gRPC-based microservice
+  - Workflow 暫停/恢復的 race condition 處理方式
 
 ## Git 身份驗證
-
 - Commit author: ksmooi <kaishianmooi@gmail.com>
 - Git config 確認指令輸出:
-  (貼上 `git log -1 --format='%an <%ae>'` 的結果)
+  `ksmooi <kaishianmooi@gmail.com>`
 
 ## 驗證版本說明
-
-此 PR 為 Hermes Agent repo 學習功能，學習對象: ClickHouse/ClickHouse。
+此 PR 為 Hermes Agent repo 學習功能，學習對象: langgenius/dify。
