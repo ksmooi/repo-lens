@@ -1,59 +1,64 @@
 ## 學習對象
-- Repo: [langgenius/dify](https://github.com/langgenius/dify)
-- Commit: `72ee50c` (2026-05-23)
-- 語言 / 主要技術: TypeScript + Python (Flask + Next.js)
-- 專案類型 / 類別: agentic (套用模板: _templates/agentic.md)
+- Repo: [ollama/ollama](https://github.com/ollama/ollama)
+- Commit: `f63eea3` (2026-05-24T22:29:53Z)
+- 語言 / 主要技術: Go / C++
+- 專案類型 / 類別: llm-serving（套用模板: ml-dl.md）
 - 學習深度: standard
-- 筆記路徑: `repos/agentic/langgenius__dify/`
+- 筆記路徑: `repos/llm-serving/ollama__ollama/`
 
 ## 關鍵入口檔案
 
-| 檔案 | 選擇理由 | 深度精讀指標 |
+| 檔案 | 選擇理由 | 深度精讀摘要 |
 |---|---|---|
-| `api/core/workflow/workflow_entry.py` | 核心入口，graphon DAG 引擎整合層 | 608 行，完整閱讀 |
-| `api/core/agent/base_agent_runner.py` | Agent 執行核心，FC/CoT 雙態 agent | 549 行，完整閱讀 |
-| `api/core/tools/tool_manager.py` | Tool 系統核心，6 種 provider 類型註冊 | 完整閱讀 get_tool_runtime() |
-| `api/core/tools/__base/tool.py` | Tool 四層抽象設計 | 完整閱讀 fork_runtime 模式 |
-| `api/core/mcp/mcp_client.py` | MCP 協定整合（SSE + StreamableHTTP + OAuth） | 完整閱讀 |
+| `cmd/cmd.go` (`NewCLI()`) | CLI 入口，所有使用者操作從這裡開始 | 使用 cobra 建構指令樹，`runInteractiveTUI()` 使用 Bubbletea 建立對話介面。支援 server 自動啟動 |
+| `server/routes.go` (`GenerateRoutes()`, `GenerateHandler()`, `ChatHandler()`) | API 伺服器核心，路由定義與請求處理 | 同時支援 Ollama native API、OpenAI 相容端點（/v1/chat/completions）、Anthropic Messages 端點。透過 `middleware/` 做格式轉換 |
+| `server/sched.go` (`Scheduler`) | 模型生命週期管理核心 | 純 Go channel 事件驅動排程器，管理多模型載入/卸載/GPU 記憶體。關鍵設計：單一 goroutine 處理所有排程決策、三階段載入（Fit→Alloc→Commit） |
+| `llm/server.go` (`NewLlamaServer()`, `LlamaServer` interface) | 推論引擎管理與執行策略 | 決定引擎選擇（llamarunner vs ollamarunner），管理子行程生命週期。崩潰檢測透過 `Ping()` 方法 |
+| `runner/runner.go` (`Execute()`) | 引擎分派點 | 根據 CLI 參數分派到 llamarunner（預設）、ollamarunner（--ollama-engine）、mlxrunner（--mlx-engine）、imagegen（--imagegen-engine） |
 
 ## 三個最重要的發現
 
-1. **Workflow Layers (洋蔥模型)**: Dify 透過 `GraphEngineLayer` 將配額控制、執行限制、OTel 追蹤、DB 持久化以 middleware 方式堆疊在 graphon DAG 引擎上——這是比單純的 decorator 或 event hooks 更系統化的 cross-cutting concern 處理方式。
-2. **Plugin Daemon 隔離架構**: 不直接 import plugin 程式碼，而是透過獨立 HTTP 服務執行，搭配 Backwards Invocation 模式讓 plugin 回調 API 能力。這是 production 等級的安全隔離選擇。
-3. **Fork Runtime 執行期隔離**: 每次 tool 調用前 clone 工具實例並注入新 runtime，確保平行調用無 race conditions——簡單但有效的設計模式。
+1. **子行程隔離架構**：Ollama 選擇將推論引擎以獨立子行程（subprocess）啟動，而非 in-process CGo 或 Python 同行程。這讓引擎崩潰（C++ 常見的 segfault）時主 server 不受影響，但代價是每次推論步驟的 HTTP+JSON 序列化 overhead。與 vLLM 的 in-process 架構形成根本性的設計對比。
+
+2. **雙引擎遷移策略**：Ollama 同時維護 llamarunner（CGo/llama.cpp）和 ollamarunner（全新的純 Go 引擎），以模型架構為單位逐步遷移。新模型（Gemma 3/4、Llama 4、Qwen 3）強制使用 ollamarunner，傳統模型繼續使用 llamarunner，若初始化失敗自動 fallback。這是在大型開源專案中進行核心重構的典範級實作。
+
+3. **排程器是簡潔設計的範例**：Ollama 的 Scheduler 只用 932 行 Go 程式碼就實現了多模型併發管理、GPU 記憶體追蹤、keep-alive 過期驅逐、崩潰恢復。核心是 4 個 Go channel 的事件驅動設計，沒有複雜的狀態枚舉或鎖設計。對比 vLLM 的 scheduler（數千行，包含 PagedAttention 的 page table 管理），Ollama 的 scheduler 更輕量但缺少 continuous batching。
 
 ## 候選 Pattern
 
-- **Plugin Backward Invocation**: Plugin 需要反過來呼叫宿主系統的模型/tool/app 能力，形成雙向通訊模式。已在 microsoft/autogen 的 executor 模式觀察到類似設計。
-- **Workflow Layer Stack**: 用 middleware layers 處理長期執行工作流的 cross-cutting concerns。值得追蹤是否在其他 workflow-based agent framework 重現。
+- **Scheduler 設計差異**：Ollama 的「事件驅動 channel-based scheduler」和 vLLM 的「page table-aware scheduler」是 inference engine scheduler 的兩種設計極端——一個只管「模型層級」的生命週期，一個深入到「KV cache block 層級」的記憶體管理。目前觀察到 2 個 repo，需第 3 個才能升級到 `_patterns/`。
+- **子行程隔離 vs in-process**：Ollama 的 subprocess runner 和 vLLM 的 in-process EngineCore 是 AI inference engine 的兩種元件隔離哲學。已在 vLLM 的 9-questions.md 中標記。目前觀察到 2 個 repo（Ollama + vLLM），等待第 3 個 repo（可能是 TGI 或 SGLang）。
 
 ## 品質檢查摘要
-- 各檔字數: README=3,303 / 1-arch=11,512 / 2-walk=11,808 / 3-pat=11,005 / 9-q=4,506
-- Mermaid 圖數量: 1-arch=3 張、2-walk=1 張、3-pat=0 張
-- path:line 引用總數: 28
-- 量化資訊出現次數: 20+（版本號、stars、檔案數、layers 數量、VDB 後端數等）
-- 比較表格出現次數: 3（README 競品對照、3-key 跨框架對照、App 類型對照）
+
+- 各檔字數（bytes）: README=2,937 / 1-arch=10,661 / 2-walk=9,658 / 3-pat=12,174 / 9-q=5,556
+- Mermaid 圖數量: 1-arch=8 張、2-walk=2 張、3-pat=2 張（合計 12 張）
+- path:line 引用總數: 39
+- 量化資訊出現次數（版本、規模、效能等具體數字）: 15+（包含環境變數預設值、競品比較數字、效能推測）
+- 比較表格出現次數: 1（README 競品對照表）
 
 ## 執行決策日誌
-- REPO_SLUG 決定與衝突檢查結果: `langgenius__dify`，無衝突
-- 類別確認: CATEGORY=agentic / TEMPLATE=_templates/agentic.md
-- 類別決策說明: Dify 的核心是 agentic workflow development platform，agent 編排是其核心抽象，RAG 是功能性而非核心定位
-- 新增類別時的附帶動作: 無，使用既有 `agentic` 類別
-- 關鍵入口檔案選擇與排除理由: 選擇 workflow_entry.py（graphon 整合層）、agent runner（FC/CoT 雙態）、tool system（4 層抽象）、MCP client（MCP 整合）；排除 RAG pipeline（非 agentic 核心）、frontend web（TypeScript 非分析主力）
-- 競品識別: LangFlow / Flowise / Coze（詳見 README 比較表格）
-- subagent 使用情況: 使用 4 個 subagent 分別分析 agent 系統、tool/MCP 系統、workflow/app 系統、plugin/RAG 系統
-- 工具替換: pygount 超時，改用 find + sed + wc 做語言分布統計
-- 模板章節未明確規則的處理: 無
-- 任務 prompt 覆寫 AGENTS.md 的項目: STUDY_WORKSPACE_PATH 使用 .tmp/runs/ 而非 .tmp/studies/（任務 prompt 指定路徑優先）
+
+- REPO_SLUG 決定與衝突檢查結果: `ollama__ollama`，無 branch 衝突
+- 類別確認: CATEGORY=llm-serving / TEMPLATE=ml-dl.md
+- 類別決策說明: ollama 是本地 LLM 推論引擎，專注於推論加速、模型載入/卸載管理，屬於 llm-serving 類別
+- 新增類別時的附帶動作: 無，使用既有類別（llm-serving）
+- 關鍵入口檔案選擇與排除理由: 選擇 CLI、server routes、scheduler、llm server、runner dispatch 五個點，排除 app/（桌面應用，架構較獨立）、x/（實驗性功能，尚未穩定）、openai/（轉換層，依賴 routes）
+- 競品識別: llama.cpp（底層引擎）、vLLM（生產級 serving）、Ollama 的差異定位在「最低入門門檻」
+- subagent 使用情況: 使用 2 個 subagent 平行分析（ollamarunner vs llamarunner 差異分析、排程器與模型生命週期分析）
+- 工具替換: 無
+- 模板章節未明確規則的處理: `ml-dl.md` 模板原為 ML 訓練專案設計，對 inference engine 做了大量調整——加強架構圖與資料流圖、加入子行程隔離設計決策、調整 code-walkthrough 為請求路徑追蹤而非 training step
+- 任務 prompt 覆寫 AGENTS.md 的項目: 無
 - [UNVERIFIED] 標註的部分清單:
-  - graphon 套件的社群規模（無法查到明確的 stars/contributor）
-  - Agent Node v2 的 Agent Backend 是否為 gRPC-based microservice
-  - Workflow 暫停/恢復的 race condition 處理方式
+  - 「ollamarunner 和 llamarunner 對同一個模型的輸出是否一致」→ 3-key-patterns #P3
+  - 「continuous batching 是否真的不適合 Ollama 的架構」→ 9-questions.md
+  - 「未來是否會增加其他 backend」→ 3-key-patterns #P6
 
 ## Git 身份驗證
+
 - Commit author: ksmooi <kaishianmooi@gmail.com>
 - Git config 確認指令輸出:
-  `ksmooi <kaishianmooi@gmail.com>`
+  (將在 commit 後補充)
 
 ## 驗證版本說明
-此 PR 為 Hermes Agent repo 學習功能，學習對象: langgenius/dify。
+此 PR 為 Hermes Agent repo 學習功能，學習對象:ollama/ollama。
